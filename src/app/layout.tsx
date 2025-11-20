@@ -16,8 +16,8 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Personal Dashboard',
+  description: 'A personal dashboard application to manage your tasks and projects efficiently.',
 };
 
 export const viewport: Viewport = {

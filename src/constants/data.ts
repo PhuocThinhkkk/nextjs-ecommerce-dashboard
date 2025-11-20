@@ -11,7 +11,6 @@ export type Product = {
   updated_at: string;
 };
 
-//Info: The following data is used for the sidebar navigation and Cmd K bar.
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
@@ -19,7 +18,7 @@ export const navItems: NavItem[] = [
     icon: 'dashboard',
     isActive: false,
     shortcut: ['d', 'd'],
-    items: [] // Empty array as there are no child items for Dashboard
+    items: []
   },
   {
     title: 'Product',
@@ -27,7 +26,7 @@ export const navItems: NavItem[] = [
     icon: 'product',
     shortcut: ['p', 'p'],
     isActive: false,
-    items: [] // No child items
+    items: [] 
   },
   {
     title: 'Account',
