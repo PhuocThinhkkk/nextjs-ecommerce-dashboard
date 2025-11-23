@@ -90,6 +90,8 @@ model PaymentDetails {
   provider      String
   status        PaymentStatus
   amount        Float
+
+  orders        OrderDetails[]
 }
 
 model OrderDetails {
