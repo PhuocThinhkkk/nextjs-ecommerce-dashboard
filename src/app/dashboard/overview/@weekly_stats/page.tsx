@@ -41,7 +41,7 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export function ChartTooltipIndicatorLine() {
+export default function ChartTooltipIndicatorLine() {
   return (
     <Card>
       <CardHeader>
