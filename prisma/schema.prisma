@@ -15,7 +15,7 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  create_at DateTime @default(now())
+  created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   email     String   @unique
   auth_provider AuthProvider[]
@@ -33,7 +33,7 @@ model User {
 
 model Category {
   id          Int      @id @default(autoincrement())
-  create_at   DateTime @default(now())
+  created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
   name        String   @unique
   description String?
@@ -43,7 +43,7 @@ model Category {
 
 model Product {
   id          Int      @id @default(autoincrement())
-  create_at   DateTime @default(now())
+  created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
   name        String
   description String?
@@ -56,7 +56,7 @@ model Product {
 
 model ProductsSkus {
   id        Int      @id @default(autoincrement())
-  create_at  DateTime @default(now())
+  created_at  DateTime @default(now())
   updated_at DateTime @updatedAt
   size_attribute String
   color_attribute String
@@ -71,7 +71,7 @@ model ProductsSkus {
 
 model Wishlist {
   id        Int      @id @default(autoincrement())
-  create_at DateTime @default(now())
+  created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   user      User     @relation(fields: [userClerkId], references: [clerk_customer_id])
   userClerkId    String
@@ -83,7 +83,7 @@ model Wishlist {
 
 model PaymentDetails {
   id            Int      @id @default(autoincrement())
-  create_at     DateTime @default(now())
+  created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
   user          User     @relation(fields: [userClerkId], references: [clerk_customer_id])
   userClerkId        String
@@ -93,11 +93,15 @@ model PaymentDetails {
   amount        Float
 
   orders        OrderDetails[]
+
+  @@index([stripe_payment_id])
+  @@index([created_at])
 }
+
 
 model OrderDetails {
   id            Int      @id @default(autoincrement())
-  create_at     DateTime @default(now())
+  created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
   user          User     @relation(fields: [userClerkId], references: [clerk_customer_id])
   userClerkId        String
@@ -112,7 +116,7 @@ model OrderDetails {
 
 model OrderItems {
   id            Int      @id @default(autoincrement())
-  create_at     DateTime @default(now())
+  created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
   order         OrderDetails @relation(fields: [orderId], references: [id])
   orderId       Int
