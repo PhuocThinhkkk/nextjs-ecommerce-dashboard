@@ -1,5 +1,5 @@
 import { currentUser } from '@clerk/nextjs/server';
-import { db } from '@/lib/db';
+import db from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { AuthProvider } from 'generated/prisma/enums';
 
@@ -68,14 +68,15 @@ export async function POST() {
 
 export async function PATCH(req: Request) {
   const clerkUser = await currentUser();
-  if (!clerkUser) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!clerkUser)
+    return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
 
   const body = await req.json();
   const updatedUser = await db.user.update({
     where: { clerk_customer_id: clerkUser.id },
     data: {
-      name: body.name,
-    },
+      name: body.name
+    }
   });
 
   return NextResponse.json({ user: updatedUser });
@@ -83,12 +84,12 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   const clerkUser = await currentUser();
-  if (!clerkUser) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  if (!clerkUser)
+    return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
 
   await db.user.delete({
-    where: { clerk_customer_id: clerkUser.id },
+    where: { clerk_customer_id: clerkUser.id }
   });
 
-  return NextResponse.json({ message: "User deleted" });
+  return NextResponse.json({ message: 'User deleted' });
 }
-
