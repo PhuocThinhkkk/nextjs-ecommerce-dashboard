@@ -7,7 +7,7 @@ export async function seedWishlist(users: User[], countPerUser = 5) {
   if (!products.length)
     throw new Error('No products found! Seed products first.');
 
-  const wishlistPromises = [];
+  const wishlists = [];
 
   for (const user of users) {
     if (!user.clerk_customer_id) {
@@ -16,8 +16,8 @@ export async function seedWishlist(users: User[], countPerUser = 5) {
     }
     for (let i = 0; i < countPerUser; i++) {
       const randomProduct = faker.helpers.arrayElement(products);
-      wishlistPromises.push(
-        db.wishlist.create({
+      wishlists.push(
+        await db.wishlist.create({
           data: {
             userClerkId: user.clerk_customer_id,
             productId: randomProduct.id
@@ -27,6 +27,5 @@ export async function seedWishlist(users: User[], countPerUser = 5) {
     }
   }
 
-  const createdWishlist = await Promise.all(wishlistPromises);
-  return createdWishlist;
+  return wishlists;
 }

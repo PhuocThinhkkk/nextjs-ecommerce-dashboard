@@ -6,18 +6,16 @@ const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
 const colors = ['Red', 'Blue', 'Green', 'Black', 'White', 'Yellow'];
 
 async function createRandomProduct() {
-  // Pick random category from existing ones
   const categories = await db.category.findMany();
   if (!categories.length) throw new Error('No categories found!');
 
   const category = faker.helpers.arrayElement(categories);
 
-  // Random number of SKUs per product
   const skuCount = faker.number.int({ min: 1, max: 5 });
 
   const skus = Array.from({ length: skuCount }).map(() => ({
-    sku: faker.commerce.productName(),
-    price: parseFloat(faker.commerce.price({ min: 0, max: 500 })),
+    sku: faker.string.alphanumeric(10).toUpperCase(),
+    price: faker.number.int({ min: 100, max: 50000 }), // Price in cents (e.g., 100 = $1.00)
     size_attribute: faker.helpers.arrayElement(sizes),
     color_attribute: faker.helpers.arrayElement(colors)
   }));
@@ -35,11 +33,24 @@ async function createRandomProduct() {
 }
 
 export async function seedingProducts() {
-  const productsToCreate = 10; // how many products per run
+  const productsToCreate = 10;
+  let successCount = 0;
+  let failCount = 0;
+
   for (let i = 0; i < productsToCreate; i++) {
-    const product = await createRandomProduct();
-    console.log(
-      `Created product: ${product.name} with ${product.skus.length} SKUs`
-    );
+    try {
+      const product = await createRandomProduct();
+      console.log(
+        `Created product: ${product.name} with ${product.skus.length} SKUs`
+      );
+      successCount++;
+    } catch (error) {
+      console.error(`Failed to create product ${i + 1}:`, error);
+      failCount++;
+    }
   }
+
+  console.log(
+    `\nSeeding complete: ${successCount} succeeded, ${failCount} failed`
+  );
 }
