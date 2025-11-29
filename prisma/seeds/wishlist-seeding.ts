@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker';
 import db from '@/lib/db';
-import { User } from '@prisma/client';
 
-export async function seedWishlist(users: User[], countPerUser = 5) {
+export async function seedWishlist(countPerUser = 5) {
+  const users = await db.user.findMany({ take: 30 });
   const products = await db.product.findMany();
   if (!products.length)
     throw new Error('No products found! Seed products first.');
@@ -15,15 +15,19 @@ export async function seedWishlist(users: User[], countPerUser = 5) {
       continue;
     }
     for (let i = 0; i < countPerUser; i++) {
-      const randomProduct = faker.helpers.arrayElement(products);
-      wishlists.push(
-        await db.wishlist.create({
-          data: {
-            userClerkId: user.clerk_customer_id,
-            productId: randomProduct.id
-          }
-        })
-      );
+      try {
+        const randomProduct = faker.helpers.arrayElement(products);
+        wishlists.push(
+          await db.wishlist.create({
+            data: {
+              userClerkId: user.clerk_customer_id,
+              productId: randomProduct.id
+            }
+          })
+        );
+      } catch (e) {
+        console.log('Error when seeding wishlists: ', e);
+      }
     }
   }
 

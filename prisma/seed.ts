@@ -7,9 +7,9 @@ import { seedWishlist } from './seeds/wishlist-seeding';
 async function main() {
   await seedingCategories();
   await seedingProducts();
-  const users = await seedUsers();
-  await seedPayments(users);
-  await seedWishlist(users);
+  await seedUsers();
+  await seedPayments();
+  await seedWishlist();
 }
 
 main().catch((e) => {

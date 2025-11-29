@@ -1,9 +1,13 @@
 import { PaymentStatus, User } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import { createPaymentByClerkId } from '@/services/payment';
+import db from '@/lib/db';
 
-export async function seedPayments(users: User[], countPerUser = 3) {
+export async function seedPayments(countPerUser = 3) {
   const payments = [];
+  const users = await db.user.findMany({
+    take: 30
+  });
 
   for (const user of users) {
     if (!user.clerk_customer_id) {
