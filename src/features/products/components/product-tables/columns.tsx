@@ -57,9 +57,10 @@ export const columns: Column<ProductWithCategory>[] = [
     key: 'price',
     header: 'PRICE',
     render: (row) => {
+      const price = row.skus?.[0]?.price ?? 'N/A';
       return (
         <Badge variant='outline' className='border-none capitalize'>
-          {row.skus[0].price}
+          {price}
           <DollarSign />
         </Badge>
       );

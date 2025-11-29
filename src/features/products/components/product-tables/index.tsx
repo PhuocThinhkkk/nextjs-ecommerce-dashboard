@@ -17,7 +17,7 @@ export function ProductTable<TData>({
   totalItems,
   pageData
 }: ProductTableParams<TData>) {
-  const [pageSize] = useQueryState('perPage', parseAsInteger.withDefault(10));
+  const [pageSize] = useQueryState('pageSize', parseAsInteger.withDefault(10));
   const router = useRouter();
   const params = useSearchParams();
 

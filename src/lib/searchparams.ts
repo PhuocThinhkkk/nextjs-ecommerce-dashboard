@@ -7,7 +7,7 @@ import {
 
 export const searchParams = {
   page: parseAsInteger.withDefault(1),
-  perPage: parseAsInteger.withDefault(10),
+  pageSize: parseAsInteger.withDefault(10),
   name: parseAsString,
   gender: parseAsString,
   category: parseAsString

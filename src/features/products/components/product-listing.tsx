@@ -12,7 +12,7 @@ export default async function ProductListingPage({}: ProductListingPage) {
   // Showcasing the use of search params cache in nested RSCs
   const page = searchParamsCache.get('page');
   const search = searchParamsCache.get('name');
-  const pageSize = searchParamsCache.get('perPage');
+  const pageSize = searchParamsCache.get('pageSize');
   const categories = searchParamsCache.get('category');
 
   const filters = {

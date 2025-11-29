@@ -96,6 +96,7 @@ export async function getProductsByFilter(
 ): Promise<ProductWithCategory[]> {
   const page = filter.page ? filter.page : 1;
   const pageSize = filter.pageSize ? filter.pageSize : 10;
+  console.log(pageSize);
 
   const items = await db.product.findMany({
     skip: (page - 1) * pageSize,
@@ -104,18 +105,6 @@ export async function getProductsByFilter(
       name: {
         contains: '', // or equals
         mode: 'insensitive'
-      },
-      category: {
-        name: {
-          contains: ''
-        }
-      },
-      skus: {
-        some: {
-          price: {
-            lte: 100 // less than or equal
-          }
-        }
       }
     },
     include: {
