@@ -1,80 +1,80 @@
 'use client';
+
+export interface Column<T> {
+  key: keyof T | string; // property name or special id (like 'actions')
+  header: React.ReactNode; // header text or component
+  render?: (row: T) => React.ReactNode; // optional custom cell render
+  filter?: FilterLable;
+}
+
+interface FilterLable {
+  type: string;
+  label: string;
+  placeholder: string;
+}
+
 import { Badge } from '@/components/ui/badge';
-import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
-import { Product } from '@/constants/data';
-import { Column, ColumnDef } from '@tanstack/react-table';
-import { CheckCircle2, Text, XCircle } from 'lucide-react';
+import { CheckCircle2, Text, XCircle, DollarSign } from 'lucide-react';
 import Image from 'next/image';
 import { CellAction } from './cell-action';
-import { CATEGORY_OPTIONS } from './options';
+import { ProductWithCategory } from '@/services/product';
 
-export const columns: ColumnDef<Product>[] = [
+export const columns: Column<ProductWithCategory>[] = [
   {
-    accessorKey: 'photo_url',
+    key: 'photo_url',
     header: 'IMAGE',
-    cell: ({ row }) => {
-      return (
-        <div className='relative aspect-square'>
-          <Image
-            src={row.getValue('photo_url')}
-            alt={row.getValue('name')}
-            fill
-            className='rounded-lg'
-          />
-        </div>
-      );
-    }
+    render: (row) => (
+      <div className='relative aspect-square'>
+        <Image
+          src={'https://picsum.photos/id/237/200/300'}
+          alt={row.name}
+          fill
+          className='rounded-lg'
+        />
+      </div>
+    )
   },
   {
-    id: 'name',
-    accessorKey: 'name',
-    header: ({ column }: { column: Column<Product, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Name' />
-    ),
-    cell: ({ cell }) => <div>{cell.getValue<Product['name']>()}</div>,
-    meta: {
-      label: 'Name',
-      placeholder: 'Search products...',
-      variant: 'text',
-      icon: Text
-    },
-    enableColumnFilter: true
+    key: 'name',
+    header: 'NAME',
+    render: (row) => <div>{row.name}</div>,
+    filter: { type: 'text', label: 'name ', placeholder: 'Search by name' }
   },
   {
-    id: 'category',
-    accessorKey: 'category',
-    header: ({ column }: { column: Column<Product, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Category' />
-    ),
-    cell: ({ cell }) => {
-      const status = cell.getValue<Product['category']>();
-      const Icon = status === 'active' ? CheckCircle2 : XCircle;
-
+    key: 'category',
+    header: 'CATEGORY',
+    render: (row) => {
+      const Icon = row.category.name === 'active' ? CheckCircle2 : XCircle;
       return (
         <Badge variant='outline' className='capitalize'>
           <Icon />
-          {status}
+          {row.category.name}
         </Badge>
       );
-    },
-    enableColumnFilter: true,
-    meta: {
-      label: 'categories',
-      variant: 'multiSelect',
-      options: CATEGORY_OPTIONS
     }
   },
   {
-    accessorKey: 'price',
-    header: 'PRICE'
+    key: 'price',
+    header: 'PRICE',
+    render: (row) => {
+      return (
+        <Badge variant='outline' className='border-none capitalize'>
+          {row.skus[0].price}
+          <DollarSign />
+        </Badge>
+      );
+    }
   },
   {
-    accessorKey: 'description',
-    header: 'DESCRIPTION'
+    key: 'description',
+    header: 'DESCRIPTION',
+    render: (row) => {
+      return <div>{row.description} </div>;
+    }
   },
-
   {
-    id: 'actions',
-    cell: ({ row }) => <CellAction data={row.original} />
+    key: 'actions',
+    header: 'ACTIONS',
+    render: (row) => <CellAction data={row} />
   }
 ];

@@ -38,3 +38,14 @@ export interface DataTableRowAction<TData> {
   row: Row<TData>;
   variant: 'update' | 'delete';
 }
+
+export interface PageTableFilterData {
+  page: number;
+  pageSize: number;
+  total: number;
+}
+
+export interface PageTableOnEvent {
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+}

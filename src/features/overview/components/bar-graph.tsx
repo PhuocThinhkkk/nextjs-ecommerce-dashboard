@@ -22,7 +22,7 @@ export const description = 'An interactive bar chart';
 
 const chartConfig = {
   views: {
-    label: 'Page Views'
+    label: 'Money'
   },
   money: {
     label: 'Amount Paid',

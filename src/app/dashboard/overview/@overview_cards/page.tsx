@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Card,
   CardHeader,
@@ -10,56 +8,91 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { getRevenueOverview } from '@/services/overview/revenue';
+import { getUserOverview } from '@/services/overview/users';
 
-export default function DashboardOverview() {
+export default async function DashboardOverview() {
+  const [revenueOverview, userOverview] = await Promise.all([
+    getRevenueOverview(),
+    getUserOverview()
+  ]);
+
+  const userOverviewIsUp = userOverview.trend === 'up';
+
   return (
     <div className='grid h-full gap-4'>
       {/* Total Revenue Card */}
       <Card className='@container/card'>
         <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
+          <CardDescription>Total Revenue in one month</CardDescription>
           <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-            $12,580.50
+            {revenueOverview.totalRevenue.toFixed(2)}
           </CardTitle>
           <CardAction>
             <Badge variant='outline'>
-              <TrendingUp className='size-4' />
-              +12.5%
+              {revenueOverview.trend == 'up' ? (
+                <TrendingUp className='size-4' />
+              ) : (
+                <TrendingDown className='size-4' />
+              )}
+              {revenueOverview.percentChange}%
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className='flex-col items-start gap-1.5 text-sm'>
           <div className='text-foreground line-clamp-1 flex gap-2 font-medium'>
-            Trending up this month
-            <TrendingUp className='size-4' />
+            Trending {revenueOverview.trend} this month
+            {revenueOverview.trend == 'up' ? (
+              <TrendingUp className='size-4' />
+            ) : (
+              <TrendingDown className='size-4' />
+            )}
           </div>
           <div className='text-muted-foreground'>
-            Total revenue increased by 12.5% compared to last month
+            Total revenue
+            {revenueOverview.trend == 'up' ? 'increased' : 'decreased'}by{' '}
+            {revenueOverview.percentChange}% compared to last month
           </div>
         </CardFooter>
       </Card>
 
-      {/* Total Customers Card */}
       <Card className='@container/card'>
         <CardHeader>
-          <CardDescription>Total Customers</CardDescription>
+          <CardDescription>Total Customers in 1 month</CardDescription>
+
           <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-            2,847
+            {userOverview.totalUsers.toLocaleString()}
           </CardTitle>
+
           <CardAction>
             <Badge variant='outline'>
-              <TrendingDown className='size-4' />
-              -2.1%
+              {userOverviewIsUp ? (
+                <TrendingUp className='size-4' />
+              ) : (
+                <TrendingDown className='size-4' />
+              )}
+              {userOverviewIsUp ? '+' : '-'}
+              {Math.abs(userOverview.percentChange).toFixed(1)}%
             </Badge>
           </CardAction>
         </CardHeader>
+
         <CardFooter className='flex-col items-start gap-1.5 text-sm'>
           <div className='text-foreground line-clamp-1 flex gap-2 font-medium'>
-            Trending down this month
-            <TrendingDown className='size-4' />
+            {userOverviewIsUp
+              ? 'Trending up this month'
+              : 'Trending down this month'}
+            {userOverviewIsUp ? (
+              <TrendingUp className='size-4' />
+            ) : (
+              <TrendingDown className='size-4' />
+            )}
           </div>
+
           <div className='text-muted-foreground'>
-            Customer count decreased slightly from previous month
+            {userOverviewIsUp
+              ? 'Customer count increased compared to last month'
+              : 'Customer count decreased compared to last month'}
           </div>
         </CardFooter>
       </Card>

@@ -25,16 +25,13 @@ export default async function Page(props: pageProps) {
   searchParamsCache.parse(searchParams);
 
   // This key is used for invoke suspense if any of the search params changed (used for filters).
-  // const key = serialize({ ...searchParams });
+  const key = serialize({ ...searchParams });
 
   return (
     <PageContainer scrollable={false}>
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-start justify-between'>
-          <Heading
-            title='Products'
-            description='Manage products (Server side table functionalities.)'
-          />
+          <Heading title='Products' description='Manage products' />
           <Link
             href='/dashboard/product/new'
             className={cn(buttonVariants(), 'text-xs md:text-sm')}
@@ -44,7 +41,7 @@ export default async function Page(props: pageProps) {
         </div>
         <Separator />
         <Suspense
-          // key={key}
+          key={key}
           fallback={
             <DataTableSkeleton columnCount={5} rowCount={8} filterCount={2} />
           }

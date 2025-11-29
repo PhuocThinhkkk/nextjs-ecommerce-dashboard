@@ -2,36 +2,46 @@
 
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-
-import { useDataTable } from '@/hooks/use-data-table';
-
-import { ColumnDef } from '@tanstack/react-table';
+import { columns } from '@/features/products/components/product-tables/columns'; // your new column type
+import { PageTableFilterData, PageTableOnEvent } from '@/types/data-table';
 import { parseAsInteger, useQueryState } from 'nuqs';
-interface ProductTableParams<TData, TValue> {
+import { useSearchParams, useRouter } from 'next/navigation';
+interface ProductTableParams<TData> {
   data: TData[];
   totalItems: number;
-  columns: ColumnDef<TData, TValue>[];
+  pageData: PageTableFilterData;
 }
-export function ProductTable<TData, TValue>({
+
+export function ProductTable<TData>({
   data,
   totalItems,
-  columns
-}: ProductTableParams<TData, TValue>) {
+  pageData
+}: ProductTableParams<TData>) {
   const [pageSize] = useQueryState('perPage', parseAsInteger.withDefault(10));
+  const router = useRouter();
+  const params = useSearchParams();
 
+  function onPageChange(newPage: number) {
+    const p = new URLSearchParams(params.toString());
+    p.set('page', String(newPage));
+    router.push(`?${p.toString()}`);
+  }
+
+  function onPageSizeChange(size: number) {
+    const p = new URLSearchParams(params.toString());
+    p.set('page', '1');
+    p.set('pageSize', String(size));
+    router.push(`?${p.toString()}`, { scroll: false });
+  }
+  const pageEvent: PageTableOnEvent = {
+    onPageChange,
+    onPageSizeChange
+  };
   const pageCount = Math.ceil(totalItems / pageSize);
 
-  const { table } = useDataTable({
-    data, // product data
-    columns, // product columns
-    pageCount: pageCount,
-    shallow: false, //Setting to false triggers a network request with the updated querystring.
-    debounceMs: 500
-  });
-
   return (
-    <DataTable table={table}>
-      <DataTableToolbar table={table} />
+    <DataTable pageData={pageData} data={data} pageEvent={pageEvent}>
+      <DataTableToolbar columns={columns} />
     </DataTable>
   );
 }
