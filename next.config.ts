@@ -34,6 +34,11 @@ const baseConfig: NextConfig = {
         protocol: 'https',
         hostname: 'cdn.jsdelivr.net',
         port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: 'loremflickr.com',
+        port: ''
       }
     ]
   },

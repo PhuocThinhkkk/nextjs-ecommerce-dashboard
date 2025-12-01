@@ -26,7 +26,7 @@ export const columns: Column<ProductWithCategory>[] = [
     render: (row) => (
       <div className='relative aspect-square'>
         <Image
-          src={'https://picsum.photos/id/237/200/300'}
+          src={row.photo_url || 'https://picsum.photos/id/237/200/300'}
           alt={row.name}
           fill
           className='rounded-lg'
