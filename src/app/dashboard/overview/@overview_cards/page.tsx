@@ -35,7 +35,7 @@ export default async function DashboardOverview() {
               ) : (
                 <TrendingDown className='size-4' />
               )}
-              {revenueOverview.percentChange}%
+              {revenueOverview.percentChange.toFixed(2)}%
             </Badge>
           </CardAction>
         </CardHeader>
@@ -49,9 +49,9 @@ export default async function DashboardOverview() {
             )}
           </div>
           <div className='text-muted-foreground'>
-            Total revenue
-            {revenueOverview.trend == 'up' ? 'increased' : 'decreased'}by{' '}
-            {revenueOverview.percentChange}% compared to last month
+            Total revenue{' '}
+            {revenueOverview.trend == 'up' ? 'increased ' : 'decreased '}by{' '}
+            {revenueOverview.percentChange.toFixed(2)}% compared to last month
           </div>
         </CardFooter>
       </Card>

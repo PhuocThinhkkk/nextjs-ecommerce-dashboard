@@ -17,14 +17,11 @@ export default function Header() {
         <Breadcrumbs />
       </div>
 
-      <div className='flex items-center gap-2 px-4'>
-        <CtaGithub />
-        <div className='hidden md:flex'>
+      <div className='flex flex-1 items-center gap-2 px-4'>
+        <div className='hidden w-full md:flex'>
           <SearchInput />
         </div>
-        <UserNav />
         <ModeToggle />
-        <ThemeSelector />
       </div>
     </header>
   );
