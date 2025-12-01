@@ -120,3 +120,41 @@ export async function getTotalProductsNumber() {
   const totalItems = await db.product.count();
   return totalItems;
 }
+
+export async function getProductsWithTotalOrders() {
+  const products = await db.product.findMany({
+    select: {
+      id: true,
+      name: true,
+      photo_url: true,
+      skus: {
+        select: {
+          orderItems: {
+            select: {
+              quantity: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const result = products.map((product) => {
+    const totalOrders =
+      product.skus.reduce((skuAcc, sku) => {
+        const skuOrders = sku.orderItems.reduce(
+          (orderAcc, item) => orderAcc + item.quantity,
+          0
+        );
+        return skuAcc + skuOrders;
+      }, 0) || 0;
+
+    return {
+      name: product.name,
+      photo_url: product.photo_url,
+      orders: totalOrders
+    };
+  });
+
+  return result;
+}
