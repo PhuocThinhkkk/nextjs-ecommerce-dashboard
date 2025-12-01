@@ -26,7 +26,12 @@ export async function POST(req: Request) {
 
   const { type, data } = event;
 
-  if (type === 'user.created' || type === 'user.updated') {
+  if (
+    type === 'user.created' ||
+    type === 'user.updated' ||
+    type === 'email.created' ||
+    type === 'session.created'
+  ) {
     try {
       const email = data.email_addresses?.[0]?.email_address ?? null;
 
