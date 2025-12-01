@@ -5,6 +5,7 @@ import db from '@/lib/db';
 import { AuthProvider } from '@prisma/client';
 
 export async function POST(req: Request) {
+  console.log('webhook come from clerk to create user');
   const payload = await req.text();
   const headerPayload = headers();
 
