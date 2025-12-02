@@ -8,13 +8,17 @@ export default function OverViewLayout({
   overview_cards,
   pie_stats,
   bar_stats,
-  area_stats
+  area_stats,
+  orders_bar_chart,
+  weekly_users_payments
 }: {
   sales: React.ReactNode;
   overview_cards: React.ReactNode;
   pie_stats: React.ReactNode;
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
+  orders_bar_chart: React.ReactNode;
+  weekly_users_payments: React.ReactNode;
 }) {
   const { user } = useUser();
   return (
@@ -32,8 +36,12 @@ export default function OverViewLayout({
             {/* sales arallel routes */}
             {overview_cards}
           </div>
-          <div className='col-span-1 lg:col-span-4'>{area_stats}</div>
-          <div className='col-span-1 lg:col-span-3'>{pie_stats}</div>
+          <div className='col-span-1 grid grid-cols-1 gap-4 lg:col-span-7 lg:grid-cols-10'>
+            <div className='h-full lg:col-span-4'>{orders_bar_chart}</div>
+
+            <div className='h-full lg:col-span-3'>{weekly_users_payments}</div>
+            <div className='h-full lg:col-span-3'>{sales}</div>
+          </div>
         </div>
       </div>
     </PageContainer>
