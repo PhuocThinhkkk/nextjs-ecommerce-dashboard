@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       const email = data.email_addresses?.[0]?.email_address ?? null;
 
       if (!email) {
+        console.log('There is no email.');
         return NextResponse.json({ message: 'No email' }, { status: 400 });
       }
 
