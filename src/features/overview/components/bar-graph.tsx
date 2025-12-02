@@ -34,10 +34,14 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export function BarGraph() {
+interface BarGraphProps {
+  chartData: RevenueDailyData[];
+}
+
+export function BarGraph({ chartData }: BarGraphProps) {
+  console.log('big bar chart data: ', chartData);
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>('money');
-  const [chartData, setChartData] = React.useState<RevenueDailyData[]>([]);
 
   const total = React.useMemo(
     () => ({
@@ -46,32 +50,11 @@ export function BarGraph() {
     []
   );
 
-  const [isClient, setIsClient] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsClient(true);
-    async function fetchData() {
-      const res = await fetch('/api/admin/revenue/daily?days=90');
-      if (!res.ok) {
-        console.error('Failed to fetch data');
-        return;
-      }
-      const data = await res.json();
-      console.log('Fetched data:', data);
-      setChartData(data);
-    }
-    fetchData();
-  }, []);
-
   React.useEffect(() => {
     if (activeChart === 'error') {
       throw new Error('Mocking Error');
     }
   }, [activeChart]);
-
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <Card className='@container/card h-full !pt-3'>
