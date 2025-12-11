@@ -128,9 +128,7 @@ export default function OverViewPage() {
               </Card>
             </div>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-              <div className='col-span-4'>
-                <BarGraph />
-              </div>
+              <div className='col-span-4'></div>
               <Card className='col-span-4 md:col-span-3'></Card>
               <div className='col-span-4'>
                 <AreaGraph />
