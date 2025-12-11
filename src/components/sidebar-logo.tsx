@@ -15,12 +15,12 @@ export function SidebarLogo() {
       <SidebarMenuItem>
         <SidebarMenuButton
           size='lg'
-          className='hover:cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex justify-center'
+          className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground flex justify-center hover:cursor-pointer'
         >
-          <div className='text-primary flex aspect-square size-8 items-center justify-center rounded-lg'>
+          <div className='text-primary mr-1 flex aspect-square size-8 items-center justify-center rounded-lg'>
             <Squirrel className='size-8' />
           </div>
-          <span className='text-sidebar-accent-foreground text-2xl font-bold'>
+          <span className='text-sidebar-accent-foreground text-2xl font-bold group-data-[state=collapsed]:hidden'>
             PerDash
           </span>
         </SidebarMenuButton>
