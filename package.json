@@ -12,8 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier -c -w .",
     "prepare": "husky",
-    "db:update-missing-role": "ts-node scripts/update-all-user-role.ts",
-    "db:set-role": "ts-node scripts/set-user-role.ts"
+    "db:update-missing-role": "tsx scripts/update-all-user-role.ts",
+    "db:set-role": "tsx scripts/set-user-role.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

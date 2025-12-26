@@ -16,15 +16,18 @@ async function main() {
       console.log('How the f this user dont have the clerk id :', users[i]);
       continue;
     }
-    const userInClerk = await getUserFromClerk(userClerkId);
-    const role = userInClerk.publicMetadata?.role;
-    if (role) {
-      continue;
+    try {
+      const userInClerk = await getUserFromClerk(userClerkId);
+      const role = userInClerk.publicMetadata?.role;
+      if (role) {
+        continue;
+      }
+      await updateUserRole(userClerkId, 'USER');
+    } catch (e) {
+      console.log('err with user clerk id', userClerkId);
     }
-    await updateUserRole(userClerkId, 'USER');
   }
-
-  console.log(`✅ Updated ${users.length} users with USER role`);
+  console.log(`Success`);
 }
 
 main()
