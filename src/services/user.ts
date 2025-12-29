@@ -15,6 +15,21 @@ export async function getUserByClerkId(clerkId: string) {
   });
 }
 
+export async function isAdmin(userClerkId: string) {
+  const client = await clerkClient();
+  const user = await client.users.getUser(userClerkId);
+  const role = user.publicMetadata.role;
+  if (role === 'ADMIN') {
+    return true;
+  }
+  if (!role) {
+    console.log(
+      `shit! user with clerk id ${userClerkId} do not have role in clerk.`
+    );
+  }
+  return false;
+}
+
 export async function getUserFromClerk(clerkId: string) {
   const client = await clerkClient();
   return client.users.getUser(clerkId);

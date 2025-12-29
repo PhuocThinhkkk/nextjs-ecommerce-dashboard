@@ -1,34 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db'; // adjust your prisma import
 import { isAdmin, updateUserByClerkId, updateUserRole } from '@/services/user';
-import { auth, clerkClient } from '@clerk/nextjs/dist/types/server';
 import { getUserIdInToken } from '@/validations/auth';
-
-// GET /api/admin/users?role=USER&page=1&limit=10
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const page = Number(searchParams.get('page') || 1);
-  const limit = Number(searchParams.get('limit') || 10);
-  const role = searchParams.get('role') as 'USER' | 'ADMIN' | null;
-
-  const where: any = {};
-  if (role) where.role = role;
-
-  const users = await db.user.findMany({
-    where,
-    skip: (page - 1) * limit,
-    take: limit,
-    include: {
-      wishlist: true,
-      orders: true,
-      payments: true
-    }
-  });
-
-  const total = await db.user.count({ where });
-
-  return NextResponse.json({ users, total, page, limit });
-}
 
 // PATCH /api/admin/users/:id
 export async function PATCH(req: NextRequest) {
