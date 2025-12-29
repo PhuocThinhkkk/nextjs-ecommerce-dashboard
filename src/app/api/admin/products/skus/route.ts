@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin } from '@/services/user';
 import { getUserIdInToken } from '@/validations/auth';
-import { deleteProductTyped, updateProductTyped } from '@/services/product';
+import { updateSkuTyped } from '@/services/product';
+import { deleteSku } from '@/services/skus';
 
-// PATCH /api/admin/products/:id
+// PATCH /api/admin/skus/:id
 export async function PATCH(req: NextRequest) {
   try {
     const userClerkId = await getUserIdInToken();
@@ -12,7 +13,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: 'not an admin' }, { status: 400 });
     }
     const body = await req.json();
-    const { name, description } = body;
+    const { size_attribute, color_attribute, price } = body;
 
     if (!body.data) {
       return NextResponse.json(
@@ -21,19 +22,19 @@ export async function PATCH(req: NextRequest) {
       );
     }
     const { searchParams } = new URL(req.url);
-    const productId = Number(searchParams.get('id'));
-    if (!productId)
+    const skusId = Number(searchParams.get('id'));
+    if (!skusId)
       return NextResponse.json({ message: 'Missing id' }, { status: 400 });
-    const data = { name, description };
-    const updatedProduct = await updateProductTyped(productId, data);
-    return NextResponse.json({ message: updatedProduct }, { status: 200 });
+    const data = { size_attribute, color_attribute, price };
+    const skus = await updateSkuTyped(skusId, data);
+    return NextResponse.json({ message: skus }, { status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ message: 'shit server' }, { status: 500 });
   }
 }
 
-// DELETE /api/admin/products/:id
+// DELETE /api/admin/skus/:id
 export async function DELETE(req: NextRequest) {
   try {
     const userClerkId = await getUserIdInToken();
@@ -48,9 +49,9 @@ export async function DELETE(req: NextRequest) {
     if (!id)
       return NextResponse.json({ message: 'Missing id' }, { status: 400 });
 
-    await deleteProductTyped(id);
+    await deleteSku(id);
 
-    return NextResponse.json({ message: 'User deleted' }, { status: 200 });
+    return NextResponse.json({ message: 'skus deleted' }, { status: 200 });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ message: 'shit server' }, { status: 500 });
