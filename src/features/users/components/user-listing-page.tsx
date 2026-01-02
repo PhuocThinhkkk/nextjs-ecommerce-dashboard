@@ -1,9 +1,9 @@
 import { searchParamsCache } from '@/lib/searchparams';
 import { UserTable } from '@/features/users/components/user-tables';
 import {
-  getUsersByFilter,
   getTotalUsersNumber,
-  UserWithPayment
+  getUsersWithRoleAndPaymentByFilter,
+  UserWithPaymentAndRole
 } from '@/services/user';
 import { PageTableFilterData } from '@/types/data-table';
 import { columns } from '@/features/users/components/user-tables/column';
@@ -23,7 +23,7 @@ export default async function UserListingPage({}: UserListingPage) {
   };
 
   const [data, totalUsers] = await Promise.all([
-    getUsersByFilter({ page: page, pageSize: pageSize }),
+    getUsersWithRoleAndPaymentByFilter({ page: page, pageSize: pageSize }),
     getTotalUsersNumber()
   ]);
 
@@ -35,7 +35,7 @@ export default async function UserListingPage({}: UserListingPage) {
   };
 
   return (
-    <UserTable<UserWithPayment>
+    <UserTable<UserWithPaymentAndRole>
       data={data}
       totalItems={totalUsers}
       pageData={pageData}

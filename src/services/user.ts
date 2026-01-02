@@ -93,17 +93,29 @@ export type UserWithPayment = Prisma.UserGetPayload<{
   };
 }>;
 
-export async function getUsersByFilter(
+export type UserWithPaymentAndRole = Prisma.UserGetPayload<{
+  include: {
+    payments: true;
+  };
+}> &
+  RoleField;
+
+type RoleField = {
+  role: 'USER' | 'ADMIN';
+};
+
+export async function getUsersWithRoleAndPaymentByFilter(
   filter: FilterUserType
-): Promise<UserWithPayment[]> {
-  const page = filter.page ? filter.page : 1;
-  const pageSize = filter.pageSize ? filter.pageSize : 10;
+): Promise<UserWithPaymentAndRole[]> {
+  const page = filter.page ?? 1;
+  const pageSize = filter.pageSize ?? 10;
+
   const users = await db.user.findMany({
     skip: (page - 1) * pageSize,
     take: pageSize,
     where: {
       name: {
-        contains: '', // or equals
+        contains: '',
         mode: 'insensitive'
       }
     },
@@ -112,5 +124,26 @@ export async function getUsersByFilter(
     },
     orderBy: { id: 'asc' }
   });
-  return users;
+
+  const clerkUserIds = users.map((u) => u.clerk_customer_id);
+
+  const clerkUsers = await (
+    await clerkClient()
+  ).users.getUserList({
+    userId: clerkUserIds
+  });
+
+  const roleMap = new Map<string, 'USER' | 'ADMIN'>();
+
+  clerkUsers.data.forEach((user) => {
+    roleMap.set(
+      user.id,
+      (user.publicMetadata.role as 'USER' | 'ADMIN') ?? 'USER'
+    );
+  });
+
+  return users.map((user) => ({
+    ...user,
+    role: roleMap.get(user.clerk_customer_id) ?? 'USER'
+  }));
 }

@@ -2,6 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import db from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { AuthProvider } from '@prisma/client';
+import { updateUserRole } from '@/services/user';
 
 export async function GET(req: Request) {
   try {
@@ -73,10 +74,11 @@ export async function POST() {
           email: clerkUser.primaryEmailAddress?.emailAddress ?? '',
           name: `${clerkUser.firstName} ${clerkUser.lastName}`,
           auth_provider: providers,
-          avatar_url: user_avatar_url,
-          role: 'USER'
+          avatar_url: user_avatar_url
         }
       });
+
+      await updateUserRole(clerkUserId, 'USER');
     }
 
     return NextResponse.json({ user });

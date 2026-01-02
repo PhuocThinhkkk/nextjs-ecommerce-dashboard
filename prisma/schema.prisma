@@ -19,7 +19,7 @@ model User {
   updated_at DateTime @updatedAt
   email     String   @unique
   auth_provider AuthProvider[]
-  clerk_customer_id String? @unique
+  clerk_customer_id String @unique
   name      String?
   stripe_customer_id String?
   phone_number String?

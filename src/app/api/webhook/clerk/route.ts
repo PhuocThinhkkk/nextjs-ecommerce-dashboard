@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { Webhook } from 'svix';
 import db from '@/lib/db';
 import { AuthProvider } from '@prisma/client';
+import { updateUserRole, getUserFromClerk } from '@/services/user';
 
 export async function POST(req: Request) {
   console.log('webhook come from clerk to create user');
@@ -50,7 +51,12 @@ export async function POST(req: Request) {
 
       const avatar = data.image_url || null;
 
-      // ✅ ATOMIC & SAFE (no duplicates possible)
+      const clerkUser = await getUserFromClerk(data.id);
+      const userRole = clerkUser.publicMetadata?.role;
+      if (!userRole || (userRole != 'USER' && userRole != 'ADMIN')) {
+        await updateUserRole(data.id, 'USER');
+      }
+
       await db.user.upsert({
         where: { clerk_customer_id: data.id },
         update: {
@@ -65,7 +71,6 @@ export async function POST(req: Request) {
           email,
           name,
           avatar_url: avatar,
-          role: 'USER',
           auth_provider: [provider]
         }
       });

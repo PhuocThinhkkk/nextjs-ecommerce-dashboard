@@ -9,7 +9,6 @@ export async function seedUsers(count = 10) {
     users.push({
       email: faker.internet.email(),
       name: faker.name.fullName(),
-      role: 'USER',
       clerk_customer_id: `clerk_${Date.now()}_${i}`,
       phone_number: faker.phone.number(),
       avatar_url: faker.image.avatar()

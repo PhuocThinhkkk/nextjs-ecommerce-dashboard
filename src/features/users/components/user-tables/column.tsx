@@ -24,10 +24,10 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { CellAction } from '@/features/products/components/product-tables/cell-action';
-import { UserWithPayment } from '@/services/user';
+import { UserWithPaymentAndRole } from '@/services/user';
 import { formatVietnamTime } from '@/lib/format';
 
-export const columns: Column<UserWithPayment>[] = [
+export const columns: Column<UserWithPaymentAndRole>[] = [
   {
     key: 'photo_url',
     header: 'AVATAR',
