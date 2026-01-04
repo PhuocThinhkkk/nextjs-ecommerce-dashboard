@@ -4,10 +4,7 @@ import path from 'path';
 import { uploadImageToS3Bucket } from '@/services/upload-file';
 
 async function testUpload() {
-  const imagePath = path.join(
-    process.cwd(),
-    'public/images/sign-in.png' // 👈 your image
-  );
+  const imagePath = path.join(process.cwd(), 'public/images/sign-in.png');
 
   const fileBuffer = fs.readFileSync(imagePath);
 
