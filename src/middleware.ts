@@ -3,9 +3,19 @@ import { NextRequest } from 'next/server';
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  if (isProtectedRoute(req)) await auth.protect();
-});
+const isDev = process.env.NODE_ENV === 'development';
+
+export default clerkMiddleware(
+  async (auth, req: NextRequest) => {
+    if (isProtectedRoute(req) && !isDev) {
+      await auth.protect();
+    }
+  },
+  {
+    clockSkewInMs: isDev ? 60_000 : 0 // 60 seconds
+  }
+);
+
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params
