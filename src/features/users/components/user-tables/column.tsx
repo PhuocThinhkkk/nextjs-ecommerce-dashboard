@@ -23,8 +23,8 @@ import {
   User
 } from 'lucide-react';
 import Image from 'next/image';
-import { CellAction } from '@/features/products/components/product-tables/cell-action';
-import { UserWithPaymentAndRole } from '@/services/user';
+import { CellAction } from './cell-action';
+import { UserWithPaymentAndRole } from '@/services/user/user.services';
 import { formatVietnamTime } from '@/lib/format';
 
 export const columns: Column<UserWithPaymentAndRole>[] = [

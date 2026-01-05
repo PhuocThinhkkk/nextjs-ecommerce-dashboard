@@ -1,6 +1,7 @@
 import db from '@/lib/db';
 import { Prisma, User } from '@prisma/client';
 import { clerkClient } from '@clerk/nextjs/server';
+import { UserUpdateIntent } from './user.update.builder';
 
 export async function getUserByClerkId(clerkId: string) {
   return db.user.findUnique({
@@ -110,6 +111,10 @@ export type RoleField = {
   role: 'USER' | 'ADMIN';
 };
 
+export function isValidRole(role: string | null) {
+  return role === 'USER' || role === 'ADMIN';
+}
+
 export async function getUsersWithRoleAndPaymentByFilter(
   filter: FilterUserType
 ): Promise<UserWithPaymentAndRole[]> {
@@ -152,4 +157,16 @@ export async function getUsersWithRoleAndPaymentByFilter(
     ...user,
     role: roleMap.get(user.clerk_customer_id) ?? 'USER'
   }));
+}
+
+export async function executeUserUpdate(
+  userId: string,
+  intent: UserUpdateIntent
+) {
+  if (intent.clerk?.role) {
+    await updateUserRole(userId, intent.clerk.role);
+  }
+  if (intent.db) {
+    await updateUserByClerkId(userId, intent.db);
+  }
 }

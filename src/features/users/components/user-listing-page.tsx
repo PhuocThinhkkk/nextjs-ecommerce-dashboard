@@ -4,7 +4,7 @@ import {
   getTotalUsersNumber,
   getUsersWithRoleAndPaymentByFilter,
   UserWithPaymentAndRole
-} from '@/services/user';
+} from '@/services/user/user.services';
 import { PageTableFilterData } from '@/types/data-table';
 import { columns } from '@/features/users/components/user-tables/column';
 

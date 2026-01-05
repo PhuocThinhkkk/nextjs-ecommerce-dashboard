@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAdmin } from '@/services/user';
+import { isAdmin } from '@/services/user/user.services';
 import { getUserIdInToken } from '@/validations/auth';
 import { deleteProductTyped, updateProductTyped } from '@/services/product';
 

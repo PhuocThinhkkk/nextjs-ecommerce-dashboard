@@ -1,5 +1,8 @@
 import db from '@/lib/db';
-import { getUserByClerkId, updateUserRole } from '@/services/user';
+import {
+  getUserByClerkId,
+  updateUserRole
+} from '@/services/user/user.services';
 
 const [, , userClerkId, role] = process.argv;
 

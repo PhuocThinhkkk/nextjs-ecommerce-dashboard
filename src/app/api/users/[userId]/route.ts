@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
-import sharp from 'sharp';
-import { uploadImageToS3Bucket } from '@/services/upload-file';
-import { imageMetaSchema } from '@/validations/image';
 import { getUserIdInToken } from '@/validations/auth';
-import { isAdmin, updateUserByClerkId } from '@/services/user';
+import {
+  executeUserUpdate,
+  isAdmin,
+  isValidRole
+} from '@/services/user/user.services';
+import { UserUpdateBuilder } from '@/services/user/user.update.builder';
 
-export async function POST(
+export async function PATCH(
   req: Request,
   { params }: { params: { userId: string } }
 ) {
@@ -22,36 +24,32 @@ export async function POST(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const formData = await req.formData();
-    const file = formData.get('file') as File | null;
+    const name = formData.get('name') as string | null;
+    const role = formData.get('role') as string | null;
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file' }, { status: 400 });
+    if (!name && !role) {
+      return NextResponse.json({ error: 'invalid field!' }, { status: 400 });
+    }
+    if (!isValidRole(role)) {
+      return NextResponse.json({ error: 'invalid role!' }, { status: 400 });
     }
 
-    imageMetaSchema.parse({
-      type: file.type,
-      size: file.size
-    });
+    let intent;
+    try {
+      intent = new UserUpdateBuilder()
+        .setName(name)
+        .setRole(role, admin)
+        .build();
+    } catch (err) {
+      return NextResponse.json(
+        { error: (err as Error).message },
+        { status: 400 }
+      );
+    }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    await executeUserUpdate(userId, intent);
 
-    const processed = await sharp(buffer)
-      .resize(256, 256)
-      .webp({ quality: 85 })
-      .toBuffer();
-
-    const key = `upload/users/${userId}/${crypto.randomUUID()}.webp`;
-
-    await uploadImageToS3Bucket(processed, key, 'image/webp');
-
-    const url = `https://${process.env.AWS_S3_BUCKET}.s3-${process.env.AWS_REGION}.amazonaws.com/${key}`;
-    const data = {
-      avatar_url: url
-    };
-
-    await updateUserByClerkId(userId, data);
-
-    return NextResponse.json({ url });
+    return NextResponse.json({ message: 'update success!' }, { status: 200 });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: 'Upload failed' }, { status: 400 });

@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db'; // adjust your prisma import
-import { isAdmin, updateUserByClerkId, updateUserRole } from '@/services/user';
+import {
+  isAdmin,
+  updateUserByClerkId,
+  updateUserRole
+} from '@/services/user/user.services';
 import { auth, clerkClient } from '@clerk/nextjs/dist/types/server';
 import { getUserIdInToken } from '@/validations/auth';
 

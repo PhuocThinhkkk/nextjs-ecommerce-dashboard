@@ -3,7 +3,10 @@ import { headers } from 'next/headers';
 import { Webhook } from 'svix';
 import db from '@/lib/db';
 import { AuthProvider } from '@prisma/client';
-import { updateUserRole, getUserFromClerk } from '@/services/user';
+import {
+  updateUserRole,
+  getUserFromClerk
+} from '@/services/user/user.services';
 
 export async function POST(req: Request) {
   console.log('webhook come from clerk to create user');

@@ -31,7 +31,7 @@ import {
 } from '@/features/users/utils/validation-schema';
 import { User } from '@prisma/client';
 import { useUser } from '@clerk/nextjs';
-import { RoleField } from '@/services/user';
+import { RoleField } from '@/services/user/user.services';
 
 export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
   const router = useRouter();

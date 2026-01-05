@@ -2,30 +2,30 @@ import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 import { uploadImageToS3Bucket } from '@/services/upload-file';
 import { imageMetaSchema } from '@/validations/image';
-import { updateProductTyped } from '@/services/product';
 import { getUserIdInToken } from '@/validations/auth';
-import { isAdmin } from '@/services/user/user.services';
+import { isAdmin, updateUserByClerkId } from '@/services/user/user.services';
 
-export async function POST(req: Request) {
+export async function PATCH(
+  req: Request,
+  { params }: { params: { userId: string } }
+) {
   try {
-    const userClerkId = await getUserIdInToken();
+    const userId = params.userId;
+    let userClerkId: string;
+    try {
+      userClerkId = await getUserIdInToken();
+    } catch {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     const admin = await isAdmin(userClerkId);
-    if (!admin) {
-      return NextResponse.json({ message: 'not an admin' }, { status: 403 });
+    if (!admin && userId !== userClerkId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-    const productIdStr = formData.get('productId') as string | null;
 
     if (!file) {
       return NextResponse.json({ error: 'No file' }, { status: 400 });
-    }
-    if (!productIdStr) {
-      return NextResponse.json({ error: 'No productId' }, { status: 400 });
-    }
-    const productId = parseInt(productIdStr);
-    if (Number.isNaN(productId)) {
-      return NextResponse.json({ error: 'Invalid productId' }, { status: 400 });
     }
 
     imageMetaSchema.parse({
@@ -40,16 +40,16 @@ export async function POST(req: Request) {
       .webp({ quality: 85 })
       .toBuffer();
 
-    const key = `upload/product/${productId}/${crypto.randomUUID()}.webp`;
+    const key = `upload/users/${userId}/${crypto.randomUUID()}.webp`;
 
     await uploadImageToS3Bucket(processed, key, 'image/webp');
 
     const url = `https://${process.env.AWS_S3_BUCKET}.s3-${process.env.AWS_REGION}.amazonaws.com/${key}`;
     const data = {
-      photo_url: url
+      avatar_url: url
     };
 
-    await updateProductTyped(productId, data);
+    await updateUserByClerkId(userId, data);
 
     return NextResponse.json({ url });
   } catch (err: any) {

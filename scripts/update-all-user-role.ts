@@ -1,5 +1,9 @@
 import db from '@/lib/db';
-import { getAllUsers, getUserFromClerk, updateUserRole } from '@/services/user';
+import {
+  getAllUsers,
+  getUserFromClerk,
+  updateUserRole
+} from '@/services/user/user.services';
 
 async function main() {
   const users = await getAllUsers();
