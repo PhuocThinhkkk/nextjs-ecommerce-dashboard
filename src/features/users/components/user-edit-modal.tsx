@@ -76,15 +76,22 @@ export function UserProfileModal({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      processImageFile(files[0]);
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        processImageFile(file);
+      }
     }
   };
-
   const processImageFile = (file: File) => {
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
+    };
+    reader.onerror = () => {
+      setImageFile(null);
+      setImagePreview(null);
+      // Optionally show error toast/message to user
     };
     reader.readAsDataURL(file);
   };

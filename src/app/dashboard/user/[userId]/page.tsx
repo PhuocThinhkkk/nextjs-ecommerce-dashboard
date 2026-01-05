@@ -16,7 +16,7 @@ export default async function Page(props: PageProps) {
     const id = parseInt(userId);
     const user = await getUserById(id);
     if (!user) {
-      throw new Error('this user is fake.');
+      throw new Error('User not found.');
     }
     return (
       <PageContainer scrollable>
@@ -28,6 +28,7 @@ export default async function Page(props: PageProps) {
       </PageContainer>
     );
   } catch (e) {
-    throw new Error('Wrong user id.');
+    console.error('Error loading user:', e);
+    throw e;
   }
 }

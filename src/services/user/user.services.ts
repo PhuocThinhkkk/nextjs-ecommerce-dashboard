@@ -42,8 +42,11 @@ export async function getUserFromClerk(clerkId: string) {
   return client.users.getUser(clerkId);
 }
 
-export async function getAllUsers() {
-  return db.user.findMany();
+export async function getAllUsers(options?: { skip?: number; take?: number }) {
+  return db.user.findMany({
+    skip: options?.skip,
+    take: options?.take
+  });
 }
 
 export async function updateUserRole(
@@ -163,10 +166,22 @@ export async function executeUserUpdate(
   userId: string,
   intent: UserUpdateIntent
 ) {
-  if (intent.clerk?.role) {
-    await updateUserRole(userId, intent.clerk.role);
-  }
-  if (intent.db) {
-    await updateUserByClerkId(userId, intent.db);
+  try {
+    if (intent.clerk?.role) {
+      await updateUserRole(userId, intent.clerk.role);
+    }
+    if (intent.db) {
+      await updateUserByClerkId(userId, intent.db);
+    }
+  } catch (error) {
+    // Log the error with context about which update failed
+    console.error(`Failed to execute user update for ${userId}:`, error);
+
+    // Re-throw to allow caller to handle the error
+    throw new Error(
+      `User update failed for ${userId}. System may be in inconsistent state. ` +
+        `Please verify Clerk and database records.`,
+      { cause: error }
+    );
   }
 }

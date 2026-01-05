@@ -43,8 +43,7 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
-  const role = user?.publicMetadata.role as RoleField['role'];
-  console.log('role shit', role);
+  const role = (user?.publicMetadata.role as RoleField['role']) || 'USER';
   const {
     register,
     handleSubmit,
@@ -98,10 +97,21 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
   };
 
   const processImageFile = (file: File) => {
+    const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSizeInBytes) {
+      // You may want to set a form error here
+      alert('File size must be less than 5MB');
+      return;
+    }
+
     setImageFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
       setImagePreview(e.target?.result as string);
+    };
+    reader.onerror = () => {
+      alert('Failed to read file');
+      setImageFile(null);
     };
     reader.readAsDataURL(file);
   };
