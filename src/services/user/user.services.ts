@@ -2,6 +2,7 @@ import db from '@/lib/db';
 import { Prisma, User } from '@prisma/client';
 import { clerkClient } from '@clerk/nextjs/server';
 import { UserUpdateIntent } from './user.update.builder';
+import { UserDBWithRole } from './user.types';
 
 export async function getUserByClerkId(clerkId: string) {
   return db.user.findUnique({
@@ -16,16 +17,27 @@ export async function getUserByClerkId(clerkId: string) {
   });
 }
 
-export async function getUserById(id: number) {
-  return db.user.findUnique({
+export async function getUserById(id: number): Promise<UserDBWithRole> {
+  const user = await db.user.findUnique({
     where: { id: id }
   });
+  if (!user?.clerk_customer_id) {
+    throw new Error('How tf this user dont have clerk id in db');
+  }
+  const role = await getUserRoleFromClerk(user?.clerk_customer_id);
+  const u = { ...user, role };
+  return u;
 }
 
-export async function isAdmin(userClerkId: string) {
+export async function getUserRoleFromClerk(userClerkId: string) {
   const client = await clerkClient();
   const user = await client.users.getUser(userClerkId);
   const role = user.publicMetadata.role;
+  return role as RoleField['role'];
+}
+
+export async function isAdmin(userClerkId: string) {
+  const role = await getUserRoleFromClerk(userClerkId);
   if (role === 'ADMIN') {
     return true;
   }
@@ -163,25 +175,36 @@ export async function getUsersWithRoleAndPaymentByFilter(
 }
 
 export async function executeUserUpdate(
-  userId: string,
+  userClerkId: string,
   intent: UserUpdateIntent
 ) {
   try {
     if (intent.clerk?.role) {
-      await updateUserRole(userId, intent.clerk.role);
+      await updateUserRole(userClerkId, intent.clerk.role);
     }
     if (intent.db) {
-      await updateUserByClerkId(userId, intent.db);
+      await updateUserByClerkId(userClerkId, intent.db);
     }
   } catch (error) {
     // Log the error with context about which update failed
-    console.error(`Failed to execute user update for ${userId}:`, error);
+    console.error(`Failed to execute user update for ${userClerkId}:`, error);
 
     // Re-throw to allow caller to handle the error
     throw new Error(
-      `User update failed for ${userId}. System may be in inconsistent state. ` +
+      `User update failed for ${userClerkId}. System may be in inconsistent state. ` +
         `Please verify Clerk and database records.`,
       { cause: error }
     );
   }
+}
+
+export async function changeFromUserIdToClerk(id: string) {
+  const userId = parseInt(id);
+  const user = await db.user.findFirst({
+    where: { id: userId }
+  });
+  if (!user) {
+    throw new Error('no user in clerk.');
+  }
+  return user.clerk_customer_id;
 }

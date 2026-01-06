@@ -21,7 +21,7 @@ export class UserUpdateBuilder {
     return this;
   }
 
-  setRole(role: unknown, isAdmin: boolean) {
+  setRole(role: unknown) {
     if (role == null) return this;
 
     if (typeof role !== 'string') {
@@ -30,10 +30,6 @@ export class UserUpdateBuilder {
 
     if (!isValidRole(role)) {
       throw new Error('Invalid role');
-    }
-
-    if (!isAdmin) {
-      throw new Error('Forbidden');
     }
 
     this.intent.clerk ??= {};
