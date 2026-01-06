@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -24,16 +25,20 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { Cloud, Upload, X, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Cloud, Upload, X, AlertCircle } from 'lucide-react';
 import {
   userProfileSchema,
   type UserProfileFormValues
 } from '@/features/users/utils/validation-schema';
-import { User } from '@prisma/client';
 import { useUser } from '@clerk/nextjs';
 import { RoleField } from '@/services/user/user.services';
+import { UserDBWithRole } from '@/services/user/user.types';
 
-export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
+export default function UserViewPage({
+  userDataOnDB
+}: {
+  userDataOnDB: UserDBWithRole;
+}) {
   const router = useRouter();
   const [imagePreview, setImagePreview] = useState<string | null>(
     userDataOnDB.avatar_url
@@ -44,6 +49,7 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const role = (user?.publicMetadata.role as RoleField['role']) || 'USER';
+  console.log(userDataOnDB);
   const {
     register,
     handleSubmit,
@@ -54,15 +60,9 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
     resolver: zodResolver(userProfileSchema),
     defaultValues: {
       name: userDataOnDB.name || '',
-      role: role || 'USER'
+      role: userDataOnDB.role
     }
   });
-  useEffect(() => {
-    if (role) {
-      setValue('role', role);
-    }
-  }, [role, setValue]);
-
   const isAdmin = role === 'ADMIN';
 
   const name = watch('name');
@@ -99,7 +99,6 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
   const processImageFile = (file: File) => {
     const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSizeInBytes) {
-      // You may want to set a form error here
       alert('File size must be less than 5MB');
       return;
     }
@@ -114,6 +113,11 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
       setImageFile(null);
     };
     reader.readAsDataURL(file);
+  };
+
+  const changeImage = () => {
+    console.log(fileInputRef);
+    fileInputRef.current?.click();
   };
 
   const clearImage = () => {
@@ -133,12 +137,66 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
         role: data.role,
         image: imageFile
       });
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      router.push('/');
+      if (imageFile) {
+        await uploadAvatar(imageFile);
+      }
+      await updateUserProfile(data);
+      toast.success('Update profile successfully!');
+    } catch (e) {
+      toast.error(`Error: ${e}`);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  type UploadAvatarResponse = {
+    url: string;
+  };
+
+  async function uploadAvatar(
+    file: File
+  ): Promise<UploadAvatarResponse['url']> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch(`/api/users/${userDataOnDB.id}/image`, {
+      method: 'PATCH',
+      body: formData
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Avatar upload failed');
+    }
+
+    const data = (await res.json()) as UploadAvatarResponse;
+    return data.url;
+  }
+
+  type UpdateProfileResponse = {
+    message: string;
+  };
+
+  async function updateUserProfile(
+    data: UserProfileFormValues
+  ): Promise<UpdateProfileResponse['message']> {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('role', data.role);
+    const res = await fetch(`/api/users/${userDataOnDB.id}`, {
+      method: 'PATCH',
+      body: formData
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Profile update failed.');
+    }
+
+    const dataRes = (await res.json()) as UpdateProfileResponse;
+    const message = dataRes.message;
+    return message;
+  }
 
   return (
     <main className='bg-background min-h-screen p-4 sm:p-6 lg:p-8'>
@@ -163,6 +221,13 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
                     JPG, PNG or GIF (max. 5MB)
                   </p>
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type='file'
+                  accept='image/*'
+                  onChange={handleFileChange}
+                  className='hidden'
+                />
 
                 {imagePreview ? (
                   <div className='border-border bg-muted/30 flex flex-col items-center gap-4 rounded-lg border p-8'>
@@ -170,21 +235,36 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
                       <AvatarImage
                         src={imagePreview || '/placeholder.svg'}
                         alt='Preview'
+                        className='object-cover'
                       />
                       <AvatarFallback>
                         {name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={clearImage}
-                      className='gap-2 bg-transparent'
-                    >
-                      <X className='h-4 w-4' />
-                      Remove Image
-                    </Button>
+                    <div className='flex gap-2 hover:cursor-pointer'>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={changeImage}
+                        className='gap-2 bg-transparent'
+                      >
+                        <Upload className='h-4 w-4' />
+                        Change Image
+                      </Button>
+
+                      {imageFile && (
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='icon'
+                          onClick={clearImage}
+                          className='text-destructive hover:bg-destructive/10'
+                        >
+                          <X className='h-4 w-4' />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <div
@@ -213,13 +293,6 @@ export default function UserViewPage({ userDataOnDB }: { userDataOnDB: User }) {
                       <Upload className='h-4 w-4' />
                       Select Image
                     </Button>
-                    <input
-                      ref={fileInputRef}
-                      type='file'
-                      accept='image/*'
-                      onChange={handleFileChange}
-                      className='hidden'
-                    />
                   </div>
                 )}
                 {errors.image && (

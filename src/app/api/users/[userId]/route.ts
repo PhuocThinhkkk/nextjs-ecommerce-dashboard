@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserIdInToken } from '@/validations/auth';
 import {
+  changeFromUserIdToClerk,
   executeUserUpdate,
   isAdmin,
   isValidRole
@@ -9,18 +10,19 @@ import { UserUpdateBuilder } from '@/services/user/user.update.builder';
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const userId = params.userId;
-    let userClerkId: string;
+    const userId = (await params).userId;
+    let userReqId: string;
     try {
-      userClerkId = await getUserIdInToken();
+      userReqId = await getUserIdInToken();
     } catch {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const admin = await isAdmin(userClerkId);
-    if (!admin && userId !== userClerkId) {
+    const admin = await isAdmin(userReqId);
+    const userClerkId = await changeFromUserIdToClerk(userId);
+    if (!admin && userClerkId !== userReqId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const formData = await req.formData();
@@ -36,10 +38,7 @@ export async function PATCH(
 
     let intent;
     try {
-      intent = new UserUpdateBuilder()
-        .setName(name)
-        .setRole(role, admin)
-        .build();
+      intent = new UserUpdateBuilder().setName(name).setRole(role).build();
     } catch (err) {
       return NextResponse.json(
         { error: (err as Error).message },
@@ -47,11 +46,11 @@ export async function PATCH(
       );
     }
 
-    await executeUserUpdate(userId, intent);
+    await executeUserUpdate(userClerkId, intent);
 
     return NextResponse.json({ message: 'update success!' }, { status: 200 });
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 400 });
+    return NextResponse.json({ error: 'Update failed' }, { status: 400 });
   }
 }
