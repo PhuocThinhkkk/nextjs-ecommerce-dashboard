@@ -3,7 +3,7 @@ import { Prisma, User } from '@prisma/client';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { UserUpdateIntent } from './user.update.builder';
 import { UserDBWithRole } from './user.types';
-import { Role } from '@/types/roles';
+import { isValidRole, Role } from '@/types/roles';
 
 export async function getUserByClerkId(clerkId: string) {
   return db.user.findUnique({
@@ -23,7 +23,7 @@ export async function getUserById(id: number): Promise<UserDBWithRole> {
     where: { id: id }
   });
   if (!user?.clerk_customer_id) {
-    throw new Error('How tf this user dont have clerk id in db');
+    throw new Error(`User with id ${id} does not have a Clerk customer ID`);
   }
   const role = await getUserRoleFromClerk(user?.clerk_customer_id);
   const u = { ...user, role };
@@ -34,6 +34,9 @@ export async function getUserRoleFromClerk(userClerkId: string) {
   const client = await clerkClient();
   const user = await client.users.getUser(userClerkId);
   const role = user.publicMetadata.role;
+  if (!role || !isValidRole(role)) {
+    throw new Error('INVALID USER ROLE');
+  }
   return role as Role;
 }
 
@@ -43,8 +46,8 @@ export async function isAdmin(userClerkId: string) {
     return true;
   }
   if (!role) {
-    console.log(
-      `shit! user with clerk id ${userClerkId} do not have role in clerk.`
+    console.warn(
+      `User with Clerk ID ${userClerkId} does not have a role assigned in Clerk.`
     );
   }
   return false;

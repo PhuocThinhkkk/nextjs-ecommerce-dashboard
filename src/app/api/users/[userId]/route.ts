@@ -5,7 +5,7 @@ import {
 } from '@/services/user/user.services';
 import { isValidRole } from '@/types/roles';
 import { UserUpdateBuilder } from '@/services/user/user.update.builder';
-import { requirePermistionToUpdateUser } from '@/validations/update';
+import { requirePermissionToUpdateUser } from '@/validations/update';
 import { handleError } from '@/lib/api-error-handler';
 
 export async function PATCH(
@@ -14,7 +14,7 @@ export async function PATCH(
 ) {
   try {
     const userId = (await params).userId;
-    await requirePermistionToUpdateUser(userId);
+    await requirePermissionToUpdateUser(userId);
     const userClerkId = await changeFromUserIdToClerk(userId);
 
     const formData = await req.formData();

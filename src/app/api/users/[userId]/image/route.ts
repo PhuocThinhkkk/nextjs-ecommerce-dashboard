@@ -7,7 +7,7 @@ import {
   isAdmin,
   updateUserByClerkId
 } from '@/services/user/user.services';
-import { requirePermistionToUpdateUser } from '@/validations/update';
+import { requirePermissionToUpdateUser } from '@/validations/update';
 import { handleError } from '@/lib/api-error-handler';
 
 export const runtime = 'nodejs';
@@ -18,7 +18,7 @@ export async function PATCH(
 ) {
   try {
     const userId = (await params).userId;
-    await requirePermistionToUpdateUser(userId);
+    await requirePermissionToUpdateUser(userId);
     const userClerkId = await changeFromUserIdToClerk(userId);
 
     const formData = await req.formData();
