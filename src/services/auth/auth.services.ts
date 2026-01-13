@@ -1,4 +1,4 @@
-import { isValidRole, Role } from '@/types/roles';
+import { isValidRole, Role, ROLES } from '@/types/roles';
 import { auth } from '@clerk/nextjs/server';
 
 export async function getUserRoleInToken() {
@@ -14,4 +14,9 @@ export async function getUserIdInToken() {
     throw new Error('FORBIDDEN');
   }
   return userId;
+}
+
+export async function isAdmin(role: string | Role) {
+  if (role !== ROLES.ADMIN) return false;
+  return true;
 }

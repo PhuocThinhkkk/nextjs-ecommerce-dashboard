@@ -2,15 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin } from '@/services/user/user.services';
 import { getUserIdInToken } from '@/services/auth/auth.services';
 import { deleteProductTyped, updateProductTyped } from '@/services/product';
+import { requireAdmin } from '@/validations/admin';
+import { handleError } from '@/lib/api-error-handler';
 
 // PATCH /api/admin/products/:id
 export async function PATCH(req: NextRequest) {
   try {
-    const userClerkId = await getUserIdInToken();
-    const admin = await isAdmin(userClerkId);
-    if (!admin) {
-      return NextResponse.json({ message: 'not an admin' }, { status: 400 });
-    }
+    await requireAdmin();
     const body = await req.json();
 
     if (!body.data) {
@@ -24,23 +22,16 @@ export async function PATCH(req: NextRequest) {
     const data = { name, description };
     const updatedProduct = await updateProductTyped(productId, data);
     return NextResponse.json({ product: updatedProduct }, { status: 200 });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(e);
   }
 }
 
 // DELETE /api/admin/products/:id
 export async function DELETE(req: NextRequest) {
   try {
-    const userClerkId = await getUserIdInToken();
-    const admin = await isAdmin(userClerkId);
-    if (!admin) {
-      return NextResponse.json({ message: 'not an admin' }, { status: 400 });
-    }
+    await requireAdmin();
 
     const { searchParams } = new URL(req.url);
     const id = Number(searchParams.get('id'));
@@ -51,11 +42,8 @@ export async function DELETE(req: NextRequest) {
     await deleteProductTyped(id);
 
     return NextResponse.json({ message: 'Product deleted' }, { status: 200 });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(e);
   }
 }

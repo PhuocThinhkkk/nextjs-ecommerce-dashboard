@@ -3,16 +3,13 @@ import sharp from 'sharp';
 import { uploadImageToS3Bucket } from '@/services/upload-file';
 import { imageMetaSchema } from '@/validations/image';
 import { updateProductTyped } from '@/services/product';
-import { isAdmin } from '@/services/user/user.services';
-import { getUserIdInToken } from '@/services/auth/auth.services';
+import { requireAdmin } from '@/validations/admin';
+import { handleError } from '@/lib/api-error-handler';
 
 export async function POST(req: Request) {
   try {
-    const userClerkId = await getUserIdInToken();
-    const admin = await isAdmin(userClerkId);
-    if (!admin) {
-      return NextResponse.json({ message: 'not an admin' }, { status: 403 });
-    }
+    await requireAdmin();
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const productIdStr = formData.get('productId') as string | null;
@@ -54,6 +51,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ url });
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 400 });
+    return handleError(err);
   }
 }

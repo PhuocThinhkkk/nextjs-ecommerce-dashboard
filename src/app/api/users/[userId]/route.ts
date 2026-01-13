@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getUserIdInToken } from '@/services/auth/auth.services';
 import {
   changeFromUserIdToClerk,
-  executeUserUpdate,
-  isAdmin
+  executeUserUpdate
 } from '@/services/user/user.services';
 import { isValidRole } from '@/types/roles';
 import { UserUpdateBuilder } from '@/services/user/user.update.builder';
+import { requirePermistionToUpdateUser } from '@/validations/update';
+import { handleError } from '@/lib/api-error-handler';
 
 export async function PATCH(
   req: Request,
@@ -14,17 +14,9 @@ export async function PATCH(
 ) {
   try {
     const userId = (await params).userId;
-    let userReqId: string;
-    try {
-      userReqId = await getUserIdInToken();
-    } catch {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const admin = await isAdmin(userReqId);
+    await requirePermistionToUpdateUser(userId);
     const userClerkId = await changeFromUserIdToClerk(userId);
-    if (!admin && userClerkId !== userReqId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+
     const formData = await req.formData();
     const name = formData.get('name') as string | null;
     const role = formData.get('role') as string | null;
@@ -51,6 +43,6 @@ export async function PATCH(
     return NextResponse.json({ message: 'update success!' }, { status: 200 });
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: 'Update failed' }, { status: 400 });
+    return handleError(err);
   }
 }
