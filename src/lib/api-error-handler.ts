@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 
 export function handleError(err: Error): Response {
-  if (err.message === 'FORBIDDEN' || err.message === 'UNAUTHORIZED') {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  if (err.message === 'UNAUTHORIZED') {
+    return NextResponse.json({ error: err.message }, { status: 401 });
+  }
+
+  if (err.message === 'FORBIDDEN') {
+    return NextResponse.json({ error: err.message }, { status: 403 });
+  }
   }
 
   if (!(err instanceof Error)) {
