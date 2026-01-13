@@ -1,8 +1,9 @@
 import db from '@/lib/db';
 import { Prisma, User } from '@prisma/client';
-import { clerkClient } from '@clerk/nextjs/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { UserUpdateIntent } from './user.update.builder';
 import { UserDBWithRole } from './user.types';
+import { isValidRole, Role } from '@/types/roles';
 
 export async function getUserByClerkId(clerkId: string) {
   return db.user.findUnique({
@@ -22,7 +23,7 @@ export async function getUserById(id: number): Promise<UserDBWithRole> {
     where: { id: id }
   });
   if (!user?.clerk_customer_id) {
-    throw new Error('How tf this user dont have clerk id in db');
+    throw new Error(`User with id ${id} does not have a Clerk customer ID`);
   }
   const role = await getUserRoleFromClerk(user?.clerk_customer_id);
   const u = { ...user, role };
@@ -33,7 +34,10 @@ export async function getUserRoleFromClerk(userClerkId: string) {
   const client = await clerkClient();
   const user = await client.users.getUser(userClerkId);
   const role = user.publicMetadata.role;
-  return role as RoleField['role'];
+  if (!role || !isValidRole(role)) {
+    throw new Error('INVALID USER ROLE');
+  }
+  return role as Role;
 }
 
 export async function isAdmin(userClerkId: string) {
@@ -42,8 +46,8 @@ export async function isAdmin(userClerkId: string) {
     return true;
   }
   if (!role) {
-    console.log(
-      `shit! user with clerk id ${userClerkId} do not have role in clerk.`
+    console.warn(
+      `User with Clerk ID ${userClerkId} does not have a role assigned in Clerk.`
     );
   }
   return false;
@@ -61,10 +65,7 @@ export async function getAllUsers(options?: { skip?: number; take?: number }) {
   });
 }
 
-export async function updateUserRole(
-  userClerkId: string,
-  role: 'USER' | 'ADMIN'
-) {
+export async function updateUserRole(userClerkId: string, role: Role) {
   const client = await clerkClient();
 
   await client.users.updateUser(userClerkId, {
@@ -123,12 +124,8 @@ export type UserWithPaymentAndRole = Prisma.UserGetPayload<{
   RoleField;
 
 export type RoleField = {
-  role: 'USER' | 'ADMIN';
+  role: Role;
 };
-
-export function isValidRole(role: string | null) {
-  return role === 'USER' || role === 'ADMIN';
-}
 
 export async function getUsersWithRoleAndPaymentByFilter(
   filter: FilterUserType
@@ -159,13 +156,10 @@ export async function getUsersWithRoleAndPaymentByFilter(
     userId: clerkUserIds
   });
 
-  const roleMap = new Map<string, 'USER' | 'ADMIN'>();
+  const roleMap = new Map<string, Role>();
 
   clerkUsers.data.forEach((user) => {
-    roleMap.set(
-      user.id,
-      (user.publicMetadata.role as 'USER' | 'ADMIN') ?? 'USER'
-    );
+    roleMap.set(user.id, (user.publicMetadata.role as Role) ?? 'USER');
   });
 
   return users.map((user) => ({

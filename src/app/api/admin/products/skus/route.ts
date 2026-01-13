@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAdmin } from '@/services/user/user.services';
-import { getUserIdInToken } from '@/validations/auth';
+import { getUserIdInToken } from '@/services/auth/auth.services';
 import { updateSkuTyped } from '@/services/product';
 import { deleteSku } from '@/services/skus';
+import { requireAdmin } from '@/validations/admin';
+import { handleError } from '@/lib/api-error-handler';
 
 // PATCH /api/admin/skus/:id
 export async function PATCH(req: NextRequest) {
   try {
-    const userClerkId = await getUserIdInToken();
-    const admin = await isAdmin(userClerkId);
-    if (!admin) {
-      return NextResponse.json({ message: 'not an admin' }, { status: 403 });
-    }
+    await requireAdmin();
+
     const body = await req.json();
     const { size_attribute, color_attribute, price } = body.data;
 
@@ -25,24 +24,16 @@ export async function PATCH(req: NextRequest) {
     const data = { size_attribute, color_attribute, price };
     const skus = await updateSkuTyped(skusId, data);
     return NextResponse.json({ message: skus }, { status: 200 });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(e);
   }
 }
 
 // DELETE /api/admin/skus/:id
 export async function DELETE(req: NextRequest) {
   try {
-    const userClerkId = await getUserIdInToken();
-    const admin = await isAdmin(userClerkId);
-    if (!admin) {
-      return NextResponse.json({ message: 'not an admin' }, { status: 400 });
-    }
-
+    await requireAdmin();
     const { searchParams } = new URL(req.url);
     const id = Number(searchParams.get('id'));
 
@@ -52,11 +43,8 @@ export async function DELETE(req: NextRequest) {
     await deleteSku(id);
 
     return NextResponse.json({ message: 'skus deleted' }, { status: 200 });
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(e);
   }
 }

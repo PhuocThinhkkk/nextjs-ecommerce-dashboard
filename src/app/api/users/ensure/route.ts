@@ -3,6 +3,7 @@ import db from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { AuthProvider } from '@prisma/client';
 import { updateUserRole } from '@/services/user/user.services';
+import { ROLES } from '@/types/roles';
 
 export async function GET(req: Request) {
   try {
@@ -78,7 +79,7 @@ export async function POST() {
         }
       });
 
-      await updateUserRole(clerkUserId, 'USER');
+      await updateUserRole(clerkUserId, ROLES.USER);
     }
 
     return NextResponse.json({ user });

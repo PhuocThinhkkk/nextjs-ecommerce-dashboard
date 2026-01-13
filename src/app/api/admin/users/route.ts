@@ -5,15 +5,15 @@ import {
   updateUserByClerkId,
   updateUserRole
 } from '@/services/user/user.services';
-import { auth, clerkClient } from '@clerk/nextjs/dist/types/server';
-import { getUserIdInToken } from '@/validations/auth';
+import { getUserIdInToken } from '@/services/auth/auth.services';
+import { isValidRole, Role } from '@/types/roles';
 
 // GET /api/admin/users?role=USER&page=1&limit=10
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page = Number(searchParams.get('page') || 1);
   const limit = Number(searchParams.get('limit') || 10);
-  const role = searchParams.get('role') as 'USER' | 'ADMIN' | null;
+  const role = searchParams.get('role') as Role | null;
 
   const where: any = {};
   if (role) where.role = role;
@@ -55,7 +55,7 @@ export async function PATCH(req: NextRequest) {
     const clerkId = searchParams.get('id');
     if (!clerkId)
       return NextResponse.json({ error: 'Missing id' }, { status: 400 });
-    if (role !== 'USER' && role !== 'ADMIN') {
+    if (!isValidRole(role)) {
       return NextResponse.json({ error: 'role f up!' }, { status: 400 });
     }
     const updatedUser = await updateUserByClerkId(clerkId, { name: name });

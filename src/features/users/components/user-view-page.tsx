@@ -49,7 +49,7 @@ export default function UserViewPage({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const role = (user?.publicMetadata.role as RoleField['role']) || 'USER';
-  console.log(userDataOnDB);
+
   const {
     register,
     handleSubmit,
@@ -132,11 +132,6 @@ export default function UserViewPage({
     setIsSubmitting(true);
 
     try {
-      console.log('Profile updated:', {
-        name: data.name,
-        role: data.role,
-        image: imageFile
-      });
       if (imageFile) {
         await uploadAvatar(imageFile);
       }

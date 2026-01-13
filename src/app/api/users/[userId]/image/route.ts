@@ -2,12 +2,13 @@ import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 import { uploadImageToS3Bucket } from '@/services/upload-file';
 import { imageMetaSchema } from '@/validations/image';
-import { getUserIdInToken } from '@/validations/auth';
 import {
   changeFromUserIdToClerk,
   isAdmin,
   updateUserByClerkId
 } from '@/services/user/user.services';
+import { requirePermissionToUpdateUser } from '@/validations/update';
+import { handleError } from '@/lib/api-error-handler';
 
 export const runtime = 'nodejs';
 
@@ -17,24 +18,14 @@ export async function PATCH(
 ) {
   try {
     const userId = (await params).userId;
-    let userReqId: string;
-    try {
-      userReqId = await getUserIdInToken();
-    } catch {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const admin = await isAdmin(userReqId);
+    await requirePermissionToUpdateUser(userId);
     const userClerkId = await changeFromUserIdToClerk(userId);
-    if (!admin && userReqId !== userClerkId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
-
     if (!file) {
       return NextResponse.json({ error: 'No file' }, { status: 400 });
     }
-
     imageMetaSchema.parse({
       type: file.type,
       size: file.size
@@ -61,6 +52,6 @@ export async function PATCH(
     return NextResponse.json({ url }, { status: 200 });
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 400 });
+    return handleError(err);
   }
 }

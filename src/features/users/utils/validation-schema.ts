@@ -1,3 +1,4 @@
+import { ROLE_VALUES, ROLES } from '@/types/roles';
 import * as z from 'zod';
 
 const MAX_FILE_SIZE = 5000000;
@@ -25,7 +26,7 @@ export const userProfileSchema = z.object({
   name: z.string().min(2, {
     message: 'Name must be at least 2 characters.'
   }),
-  role: z.enum(['USER', 'ADMIN'], {
+  role: z.enum(ROLE_VALUES, {
     message: 'Please select a valid role.'
   })
 });

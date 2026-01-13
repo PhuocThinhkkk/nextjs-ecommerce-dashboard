@@ -1,5 +1,5 @@
-import { isValidRole } from '@/services/user/user.services';
 import { RoleField } from '@/services/user/user.services';
+import { isValidRole } from '@/types/roles';
 
 export type UserUpdateIntent = {
   db?: {
