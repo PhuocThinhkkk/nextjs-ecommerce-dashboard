@@ -50,6 +50,7 @@ export function SkusForm({ form, fieldArray }: { form: any; fieldArray: any }) {
         <Button
           type='button'
           variant='outline'
+          className='hover: cursor-pointer'
           onClick={() =>
             append({
               color_attribute: 'name color',

@@ -375,7 +375,7 @@ export default function UserViewPage({
                 </Button>
                 <Button
                   type='submit'
-                  className='sm:w-auto'
+                  className='hover:cursor-pointer sm:w-auto'
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Saving...' : 'Save Changes'}

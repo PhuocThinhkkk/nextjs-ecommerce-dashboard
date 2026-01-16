@@ -36,6 +36,7 @@ export default function ProductForm({
   const [preview, setPreview] = useState<string | null>(
     initialData?.photo_url ?? null
   );
+  const [isSubmit, setIsSubmit] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(productFormSchema),
@@ -133,6 +134,7 @@ export default function ProductForm({
   }
 
   async function onSubmit(values: FormValues) {
+    setIsSubmit(true);
     try {
       await updateNormalFieldProductAndSkus(values);
       console.log('image: ', values.image);
@@ -143,6 +145,8 @@ export default function ProductForm({
       router.push('/dashboard/product');
     } catch (e: any) {
       toast.error(`${e.message}`);
+    } finally {
+      setIsSubmit(false);
     }
   }
   return (
@@ -236,7 +240,9 @@ export default function ProductForm({
 
           <SkusForm form={form} fieldArray={skusFieldArray} />
 
-          <Button type='submit'>Save Product</Button>
+          <Button type='submit' disabled={isSubmit}>
+            Save Product
+          </Button>
         </Form>
       </CardContent>
     </Card>
