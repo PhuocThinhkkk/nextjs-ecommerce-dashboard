@@ -72,6 +72,116 @@ export async function updateProductTyped(
     data
   });
 }
+import crypto from 'crypto';
+
+function generateSku(params: {
+  productId: number;
+  color: string;
+  size: string;
+}) {
+  const base = `${params.productId}-${params.color}-${params.size}-${Date.now()}`;
+  const hash = crypto
+    .createHash('sha1')
+    .update(base)
+    .digest('hex')
+    .slice(0, 8)
+    .toUpperCase();
+
+  return `SKU-${hash}`;
+}
+
+export type UpdateProductWithSkusInput = {
+  name: string;
+  description?: string | null;
+  categoryId: number;
+  photo_url?: string | null;
+  skus: {
+    id?: number | undefined;
+    size_attribute: string;
+    color_attribute: string;
+    price: number;
+  }[];
+};
+
+export async function updateProductWithSkus(
+  productId: number,
+  data: UpdateProductWithSkusInput
+) {
+  const incomingIds = data.skus
+    .map((s) => s.id)
+    .filter((id): id is number => typeof id === 'number');
+
+  const skusToDelete = await db.productsSkus.findMany({
+    where: {
+      productId,
+      ...(incomingIds.length > 0 && {
+        id: { notIn: incomingIds }
+      })
+    },
+    select: { id: true }
+  });
+
+  if (skusToDelete.length > 0) {
+    const usedSku = await db.orderItems.findFirst({
+      where: {
+        productSkuId: {
+          in: skusToDelete.map((s) => s.id)
+        }
+      }
+    });
+
+    if (usedSku) {
+      throw new Error('One or more SKUs are already used in orders.');
+    }
+  }
+
+  await db.$transaction([
+    db.product.update({
+      where: { id: productId },
+      data: {
+        name: data.name,
+        description: data.description,
+        categoryId: data.categoryId,
+        photo_url: data.photo_url ?? undefined
+      }
+    }),
+
+    ...(skusToDelete.length > 0
+      ? [
+          db.productsSkus.deleteMany({
+            where: {
+              id: { in: skusToDelete.map((s) => s.id) }
+            }
+          })
+        ]
+      : []),
+
+    ...data.skus.map((sku) =>
+      sku.id
+        ? db.productsSkus.update({
+            where: { id: sku.id },
+            data: {
+              price: sku.price,
+              size_attribute: sku.size_attribute,
+              color_attribute: sku.color_attribute
+            }
+          })
+        : db.productsSkus.create({
+            data: {
+              productId,
+              size_attribute: sku.size_attribute,
+              color_attribute: sku.color_attribute,
+              price: sku.price,
+              sku: generateSku({
+                productId,
+                color: sku.color_attribute,
+                size: sku.size_attribute
+              })
+            }
+          })
+    )
+  ]);
+}
 
 export async function updateSkuTyped(
   skuId: number,
