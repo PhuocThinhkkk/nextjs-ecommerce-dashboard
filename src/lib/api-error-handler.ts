@@ -15,8 +15,5 @@ export function handleError(err: Error): Response {
 
   console.error(err);
 
-  return NextResponse.json(
-    { message: 'Internal Server Error' },
-    { status: 500 }
-  );
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
 }

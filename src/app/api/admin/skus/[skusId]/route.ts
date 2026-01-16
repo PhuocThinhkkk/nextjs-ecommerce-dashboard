@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { isAdmin } from '@/services/user/user.services';
-import { getUserIdInToken } from '@/services/auth/auth.services';
 import { updateSkuTyped } from '@/services/product';
 import { deleteSku } from '@/services/skus';
 import { requireAdmin } from '@/validations/admin';
 import { handleError } from '@/lib/api-error-handler';
 
 // PATCH /api/admin/skus/:id
-export async function PATCH(req: NextRequest) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ skusId: string }> }
+) {
   try {
     await requireAdmin();
+
+    const id = parseInt((await params).skusId);
+    if (Number.isNaN(id)) {
+      return NextResponse.json({ error: 'Invalid productId' }, { status: 400 });
+    }
 
     const body = await req.json();
     const { size_attribute, color_attribute, price } = body.data;
@@ -17,34 +23,30 @@ export async function PATCH(req: NextRequest) {
     if (!body.data) {
       return NextResponse.json({ message: 'Missing data' }, { status: 400 });
     }
-    const { searchParams } = new URL(req.url);
-    const skusId = Number(searchParams.get('id'));
-    if (!skusId)
-      return NextResponse.json({ message: 'Missing id' }, { status: 400 });
     const data = { size_attribute, color_attribute, price };
-    const skus = await updateSkuTyped(skusId, data);
+    const skus = await updateSkuTyped(id, data);
     return NextResponse.json({ message: skus }, { status: 200 });
   } catch (e: any) {
-    console.error(e);
     return handleError(e);
   }
 }
 
 // DELETE /api/admin/skus/:id
-export async function DELETE(req: NextRequest) {
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ skusId: string }> }
+) {
   try {
     await requireAdmin();
-    const { searchParams } = new URL(req.url);
-    const id = Number(searchParams.get('id'));
 
-    if (!searchParams.get('id') || isNaN(id))
+    const id = parseInt((await params).skusId);
+    if (isNaN(id))
       return NextResponse.json({ message: 'Missing id' }, { status: 400 });
 
     await deleteSku(id);
 
     return NextResponse.json({ message: 'skus deleted' }, { status: 200 });
   } catch (e: any) {
-    console.error(e);
     return handleError(e);
   }
 }

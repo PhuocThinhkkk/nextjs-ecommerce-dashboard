@@ -3,8 +3,14 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function getUserRoleInToken() {
   const { sessionClaims } = await auth();
-  if (!sessionClaims) throw new Error('FORBIDDEN');
-  if (!isValidRole(sessionClaims.role)) throw new Error('FORBIDDEN');
+  if (!sessionClaims) {
+    console.error('No session');
+    throw new Error('FORBIDDEN');
+  }
+  if (!isValidRole(sessionClaims.role)) {
+    console.error('Invalid Role');
+    throw new Error('FORBIDDEN');
+  }
   return sessionClaims.role as Role;
 }
 

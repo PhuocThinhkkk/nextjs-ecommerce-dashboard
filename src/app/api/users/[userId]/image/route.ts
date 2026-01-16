@@ -13,7 +13,7 @@ import { handleError } from '@/lib/api-error-handler';
 export const runtime = 'nodejs';
 
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {

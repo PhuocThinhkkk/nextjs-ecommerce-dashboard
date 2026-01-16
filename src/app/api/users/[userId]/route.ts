@@ -9,7 +9,7 @@ import { requirePermissionToUpdateUser } from '@/validations/update';
 import { handleError } from '@/lib/api-error-handler';
 
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {

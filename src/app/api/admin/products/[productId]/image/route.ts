@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import sharp from 'sharp';
 import { uploadImageToS3Bucket } from '@/services/upload-file';
 import { imageMetaSchema } from '@/validations/image';
@@ -6,10 +6,17 @@ import { updateProductTyped } from '@/services/product';
 import { requireAdmin } from '@/validations/admin';
 import { handleError } from '@/lib/api-error-handler';
 
-export async function POST(req: Request) {
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ productId: string }> }
+) {
   try {
     await requireAdmin();
 
+    const productId = parseInt((await params).productId);
+    if (Number.isNaN(productId)) {
+      return NextResponse.json({ error: 'Invalid productId' }, { status: 400 });
+    }
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const productIdStr = formData.get('productId') as string | null;
@@ -19,10 +26,6 @@ export async function POST(req: Request) {
     }
     if (!productIdStr) {
       return NextResponse.json({ error: 'No productId' }, { status: 400 });
-    }
-    const productId = parseInt(productIdStr);
-    if (Number.isNaN(productId)) {
-      return NextResponse.json({ error: 'Invalid productId' }, { status: 400 });
     }
 
     imageMetaSchema.parse({
