@@ -20,12 +20,13 @@ import {
   type FormValues
 } from '@/features/products/utils/validation-schema-product';
 import Image from 'next/image';
+import { ProductWithSkus } from '@/services/product';
 
 export default function ProductForm({
   initialData,
   pageTitle
 }: {
-  initialData: any | null;
+  initialData: ProductWithSkus | null;
   pageTitle: string;
 }) {
   const router = useRouter();
@@ -41,15 +42,23 @@ export default function ProductForm({
     defaultValues: {
       name: initialData?.name ?? '',
       description: initialData?.description ?? '',
-      categoryId: initialData?.categoryId ?? undefined,
+      categoryId: initialData ? String(initialData.categoryId) : undefined,
       skus:
-        initialData?.skus?.map((s: any) => ({
+        initialData?.skus?.map((s: ProductWithSkus['skus'][0]) => ({
+          id: s.id,
           color_attribute: s.color_attribute,
           size_attribute: s.size_attribute,
           price: s.price
         })) ?? []
     }
   });
+  console.log(initialData);
+  const err = form.formState.errors;
+  const hasErrors = Object.keys(err).length > 0;
+
+  if (hasErrors) {
+    console.log('err in form: ', err);
+  }
 
   const skusFieldArray = useFieldArray({
     control: form.control,
@@ -79,24 +88,37 @@ export default function ProductForm({
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
+  async function updateNormalFieldProductAndSkus(values: FormValues) {
+    console.log('update normal field');
+    const formData = new FormData();
+    formData.append('name', values.name);
+    formData.append('description', values.description ?? '');
+    formData.append('categoryId', String(values.categoryId));
+    formData.append('skus', JSON.stringify(values.skus));
+    if (!initialData) {
+      // handling this later with /new route
+      console.log('new product added!');
+      return;
+    }
+    const res = await fetch(`/api/admin/products/${initialData.id}`, {
+      method: 'PATCH',
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(`${data.error}`);
+    }
+    return data;
+  }
+
   async function onSubmit(values: FormValues) {
     try {
-      const formData = new FormData();
-      formData.append('name', values.name);
-      formData.append('description', values.description ?? '');
-      formData.append('categoryId', String(values.categoryId));
-      formData.append('skus', JSON.stringify(values.skus));
-
-      if (values.image) {
-        formData.append('image', values.image);
-      }
-
-      await new Promise((res) => setTimeout(res, 1000));
-
+      await updateNormalFieldProductAndSkus(values);
+      console.log(values.image);
       toast.success('Product saved');
       router.push('/dashboard/product');
-    } catch {
-      toast.error('Save failed');
+    } catch (e: any) {
+      toast.error(`${e.message}`);
     }
   }
   return (
@@ -151,7 +173,7 @@ export default function ProductForm({
               </p>
             )}
 
-            {preview && preview !== initialData.photo_url && (
+            {preview && preview !== initialData?.photo_url && (
               <Button
                 type='button'
                 variant='destructive'

@@ -16,6 +16,7 @@ export function SkusForm({ form, fieldArray }: { form: any; fieldArray: any }) {
       <CardContent className='space-y-4'>
         {fields.map((field: any, index: number) => (
           <div key={field.id} className='grid grid-cols-4 items-end gap-4'>
+            <input type='hidden' {...form.register(`skus.${index}.id`)} />
             <FormInput
               control={form.control}
               name={`skus.${index}.color_attribute`}
@@ -32,7 +33,7 @@ export function SkusForm({ form, fieldArray }: { form: any; fieldArray: any }) {
               control={form.control}
               name={`skus.${index}.price`}
               label='Price'
-              type='number'
+              type='text'
               min={0}
             />
 
@@ -51,8 +52,8 @@ export function SkusForm({ form, fieldArray }: { form: any; fieldArray: any }) {
           variant='outline'
           onClick={() =>
             append({
-              color_attribute: '',
-              size_attribute: '',
+              color_attribute: 'name color',
+              size_attribute: 'name attribute',
               price: 0
             })
           }
