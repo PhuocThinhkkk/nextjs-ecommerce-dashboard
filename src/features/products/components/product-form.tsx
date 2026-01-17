@@ -21,6 +21,7 @@ import {
 } from '@/features/products/utils/validation-schema-product';
 import Image from 'next/image';
 import { ProductWithSkus } from '@/services/product';
+import { id } from 'zod/v4/locales';
 
 export default function ProductForm({
   initialData,
@@ -99,18 +100,14 @@ export default function ProductForm({
     setPreview(initialData?.photo_url ?? null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   }
-  async function uploadImage(file: File) {
-    if (!initialData) {
-      console.log('suck');
-      return;
-    }
+  async function uploadImage(productId: number, file: File) {
     if (!file) {
       console.log('suck file');
       return;
     }
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`/api/admin/products/${initialData.id}/image`, {
+    const res = await fetch(`/api/admin/products/${productId}/image`, {
       method: 'PATCH',
       body: formData
     });
@@ -121,7 +118,7 @@ export default function ProductForm({
     }
   }
 
-  async function updateNormalFieldProductAndSkus(values: FormValues) {
+  async function handlingNormalFieldProductAndSkus(values: FormValues) {
     console.log('update normal field');
     const formData = new FormData();
     formData.append('name', values.name);
@@ -129,28 +126,43 @@ export default function ProductForm({
     formData.append('categoryId', String(values.categoryId));
     formData.append('skus', JSON.stringify(values.skus));
     if (!initialData) {
-      // handling this later with /new route
-      console.log('new product added!');
-      return;
+      return await createProductWithNormalFields(formData);
     }
-    const res = await fetch(`/api/admin/products/${initialData.id}`, {
-      method: 'PATCH',
-      body: formData
+    return await updateNormalFields(formData, initialData.id);
+  }
+  async function createProductWithNormalFields(form: FormData) {
+    const res = await fetch(`/api/admin/products/new`, {
+      method: 'POST',
+      body: form
     });
     const data = await res.json();
     if (!res.ok) {
       throw new Error(`${data.error}`);
     }
-    return data;
+    const msg = data as { product: { id: number } };
+    return msg.product.id;
+  }
+
+  async function updateNormalFields(form: FormData, productId: number) {
+    const res = await fetch(`/api/admin/products/${productId}`, {
+      method: 'PATCH',
+      body: form
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(`${data.error}`);
+    }
+    const msg = data as { product: { id: number } };
+    return msg.product.id;
   }
 
   async function onSubmit(values: FormValues) {
     setIsSubmit(true);
     try {
-      await updateNormalFieldProductAndSkus(values);
+      const productId = await handlingNormalFieldProductAndSkus(values);
       console.log('image: ', values.image);
       if (values.image) {
-        await uploadImage(values.image);
+        await uploadImage(productId, values.image);
       }
       toast.success('Product saved');
       router.push('/dashboard/product');

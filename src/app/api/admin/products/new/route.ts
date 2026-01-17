@@ -8,16 +8,9 @@ import { handleError } from '@/lib/api-error-handler';
 import { parseProductForm } from '../[productId]/parse-product-form';
 
 // POST /api/admin/products/:id
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
-) {
+export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
-
-    const id = parseInt((await params).productId);
-    if (!id || isNaN(id) || id <= 0)
-      return NextResponse.json({ message: 'Missing id' }, { status: 400 });
 
     const formData = await req.formData();
 
@@ -38,8 +31,8 @@ export async function POST(
       },
       skus
     };
-    await createProductWithSkusTyped(data);
-    return NextResponse.json({ message: 'success' }, { status: 200 });
+    const product = await createProductWithSkusTyped(data);
+    return NextResponse.json({ product }, { status: 200 });
   } catch (e: any) {
     return handleError(e);
   }

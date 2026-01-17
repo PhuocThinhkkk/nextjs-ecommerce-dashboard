@@ -24,7 +24,7 @@ async function createRandomProduct() {
     product: {
       name: faker.commerce.productName(),
       description: faker.commerce.productDescription(),
-      category: { connect: { id: category.id } }
+      categoryId: category.id
     },
     skus
   };
