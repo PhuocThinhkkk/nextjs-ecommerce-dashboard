@@ -22,7 +22,7 @@ export async function getUserIdInToken() {
   return userId;
 }
 
-export async function isAdmin(role: string | Role) {
+export function isAdmin(role: string | Role) {
   if (role !== ROLES.ADMIN) return false;
   return true;
 }

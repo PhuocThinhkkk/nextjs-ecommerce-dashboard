@@ -1,12 +1,14 @@
 import { NextResponse, NextRequest } from 'next/server';
 import {
   changeFromUserIdToClerk,
-  executeUserUpdate
+  executeUserUpdate,
+  getUserRoleFromClerk
 } from '@/services/user/user.services';
 import { isValidRole } from '@/types/roles';
 import { UserUpdateBuilder } from '@/services/user/user.update.builder';
 import { requirePermissionToUpdateUser } from '@/validations/update';
 import { handleError } from '@/lib/api-error-handler';
+import { getUserRoleInToken, isAdmin } from '@/services/auth/auth.services';
 
 export async function PATCH(
   req: NextRequest,
@@ -28,9 +30,13 @@ export async function PATCH(
       return NextResponse.json({ error: 'invalid role!' }, { status: 400 });
     }
 
+    const IsAdmin = isAdmin(await getUserRoleInToken());
     let intent;
     try {
-      intent = new UserUpdateBuilder().setName(name).setRole(role).build();
+      intent = new UserUpdateBuilder()
+        .setName(name)
+        .setRole(role, IsAdmin)
+        .build();
     } catch (err) {
       return NextResponse.json(
         { error: (err as Error).message },
