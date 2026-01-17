@@ -15,7 +15,9 @@ export async function seedPayments(countPerUser = 3) {
       continue;
     }
     for (let i = 0; i < countPerUser; i++) {
-      const randomAmount = parseFloat(faker.finance.amount());
+      const randomAmount = parseFloat(
+        faker.finance.amount({ min: 1, max: 99 })
+      );
       const statusOptions: PaymentStatus[] = [
         'PENDING',
         'PAID',
